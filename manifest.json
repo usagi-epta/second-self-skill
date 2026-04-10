@@ -4,7 +4,6 @@
   "type": "agent-skill",
   "requires": {
     "webview": true,
-    "filesystem_bridge": true,
     "permissions": [
       "read:workspace/*",
       "read:evolution/*",

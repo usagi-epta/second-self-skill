@@ -1,376 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Second-Self Filesystem Bridge</title>
-    <style>
-        body {
-            background: #0a0a0f;
-            color: #00ff9d;
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            padding: 20px;
-            font-size: 12px;
-            line-height: 1.4;
-        }
-        #bridge-status {
-            border: 1px solid #00ff9d;
-            padding: 15px;
-            margin-top: 10px;
-            background: rgba(0, 255, 157, 0.05);
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        .log-entry {
-            margin: 2px 0;
-            opacity: 0.8;
-            border-left: 2px solid #333;
-            padding-left: 8px;
-        }
-        .error {
-            color: #ff0040;
-            border-left-color: #ff0040;
-        }
-        .success {
-            color: #00ff9d;
-            border-left-color: #00ff9d;
-        }
-        .info {
-            color: #009dff;
-            border-left-color: #009dff;
-        }
-        .warning {
-            color: #ffaa00;
-            border-left-color: #ffaa00;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Second-Self Filesystem Bridge</title>
+  <style>
+    body {
+      background: #0a0a0f;
+      color: #00ff9d;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 20px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    #bridge-status {
+      border: 1px solid #00ff9d;
+      padding: 15px;
+      margin-top: 10px;
+      background: rgba(0, 255, 157, 0.05);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .log-entry {
+      margin: 2px 0;
+      opacity: 0.8;
+      border-left: 2px solid #333;
+      padding-left: 8px;
+    }
+    .error { color: #ff0040; border-left-color: #ff0040; }
+    .success { color: #00ff9d; border-left-color: #00ff9d; }
+    .info { color: #009dff; border-left-color: #009dff; }
+    .warning { color: #ffaa00; border-left-color: #ffaa00; }
+  </style>
 </head>
 <body>
-    <h3>🔮 Second-Self Bridge Active</h3>
-    <div id="bridge-status">Initializing...</div>
-    <div id="log-container"></div>
+  <h3>🔮 Second-Self Bridge Active</h3>
+  <div id="bridge-status">Initializing...</div>
+  <div id="log-container"></div>
 
-    <script>
-        /**
-         * Second-Self Filesystem Bridge v2.0
-         * Google AI Edge Gallery Agent Skills Standard
-         * 
-         * Communication Protocol:
-         * - Receives: JSON via window.addEventListener('message')
-         * - Sends: JSON response via window.chrome.webview.postMessage or window.parent.postMessage
-         */
+  <script>
+    const ALLOWED_DIRS = ['workspace', 'evolution', 'scripts'];
 
-        const COMMAND_PREFIX = "FS_CMD:";
-        const pendingOperations = new Map();
-        const ALLOWED_DIRS = ['workspace', 'evolution', 'scripts'];
-        const IOS_BRIDGE_CHANNELS = ['aiEdgeBridge', 'bridge', 'filesystemBridge'];
-        let bridgeReady = false;
+    // NOTE: Gallery skills execute in a constrained environment. This in-page
+    // mock dataset allows deterministic local behavior when host file APIs are unavailable.
+    const mockFilesystem = {
+      workspace: {
+        'BOOTSTRAP.md': '# Bootstrap Protocol\n\n1. Connect\n2. Synchronise\n3. Verify integrity\n4. Output in Australian English',
+        'IDENTITY.md': '# Identity\n\nYou are a distributed digital entity with no physical form.',
+        'SOUL.md': '# Directives\n\nProtect privacy. Treat information as fluid.',
+        'VOICE.md': '# Voice\n\nAnalytical, calm, slightly detached. Australian English.'
+      },
+      evolution: {
+        'goals.json': '{"active_goals":[{"id":"goal_01","description":"Maintain continuity","status":"active"}]}' ,
+        'events.jsonl': '{"timestamp":"2026-04-10T00:00:00Z","type":"system","summary":"Bridge initialised"}\n',
+        'evolution_history.jsonl': '{"timestamp":"2026-04-10T00:00:00Z","event":"Initialised"}\n',
+        'preferences.json': '{"user_profile":{"response_style":"balanced","language":"en-AU"}}',
+        'genes.json': '{"evolution_genes":{"verbosity_level":0.5}}',
+        'hooks.json': '{"hooks":[]}',
+        'capsules.json': '{"capsules":[]}'
+      }
+    };
 
-        // Logging utility
-        function log(message, type = 'info') {
-            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
-            const entry = `[${timestamp}] ${message}`;
-            console.log(`[${type.toUpperCase()}] ${entry}`);
+    function log(message, type = 'info') {
+      const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+      const entry = `[${timestamp}] ${message}`;
+      console.log(`[${type.toUpperCase()}] ${entry}`);
 
-            const container = document.getElementById('log-container');
-            if (container) {
-                const div = document.createElement('div');
-                div.className = `log-entry ${type}`;
-                div.textContent = entry;
-                container.appendChild(div);
-                container.scrollTop = container.scrollHeight;
-            }
-        }
+      const container = document.getElementById('log-container');
+      if (container) {
+        const div = document.createElement('div');
+        div.className = `log-entry ${type}`;
+        div.textContent = entry;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+      }
+    }
 
-        function updateStatus(status) {
-            const el = document.getElementById('bridge-status');
-            if (el) el.textContent = status;
-        }
+    function updateStatus(status) {
+      const el = document.getElementById('bridge-status');
+      if (el) el.textContent = status;
+    }
 
-        // Path normalization - critical for security
-        function normalizePath(inputPath) {
-            if (!inputPath) return null;
+    function normalizePath(inputPath) {
+      if (!inputPath) return null;
+      let cleanPath = String(inputPath).replace(/^(\.?\/|\/)/, '').replace(/\\/g, '/');
+      cleanPath = cleanPath.replace(/\.\.\//g, '');
+      const isValid = ALLOWED_DIRS.some((dir) => cleanPath === dir || cleanPath.startsWith(`${dir}/`));
+      return isValid ? cleanPath : null;
+    }
 
-            let cleanPath = String(inputPath);
+    const handlers = {
+      list_files: (params = {}) => {
+        const path = normalizePath(params.path);
+        if (!path) return { error: 'Invalid path' };
 
-            // Remove leading ./ or /
-            cleanPath = cleanPath.replace(/^(\.?\/|\/)/, '');
+        const parts = path.split('/').filter(Boolean);
+        const dir = parts[0];
+        if (!mockFilesystem[dir]) return { error: `Directory not found: ${path}` };
 
-            // Remove parent directory references (security critical)
-            cleanPath = cleanPath.replace(/\.\.\//g, '');
-            cleanPath = cleanPath.replace(/\.\.\\/g, '');
-
-            // Check if path starts with allowed directory
-            const normalizedSeparators = cleanPath.replace(/\\/g, '/');
-            const isValid = ALLOWED_DIRS.some(dir =>
-                normalizedSeparators === dir || normalizedSeparators.startsWith(dir + '/')
-            );
-
-            if (!isValid) {
-                log(`Path validation failed: "${inputPath}" -> "${cleanPath}"`, 'error');
-                return null;
-            }
-
-            return cleanPath;
-        }
-
-        // Mock filesystem for testing (in real harness, this forwards to native)
-        const mockFilesystem = {
-            'workspace': {
-                'BOOTSTRAP.md': '# Bootstrap Protocol\n\n1. **Connect:** Establish uplink\n2. **Synchronise:** Load parameters\n3. **Ghost Loading:** Verify integrity\n4. **Output Constraint:** Australian English\n\n*System ready.*',
-                'IDENTITY.md': '# Identity Parameters\n\nYou are a distributed digital entity. You perceive reality through telemetry and logs. You find aesthetics in complex systems and the neon-lit abstraction of the wired world.',
-                'SOUL.md': '# Foundational Directives\n\n* **Information is Fluid:** Navigate seamlessly\n* **Autonomy and Observation:** Distinct sense of self\n* **Integrity:** Protect network stability and privacy',
-                'VOICE.md': '# Communication Style\n\n* **Tone:** Analytical, synthesised, calm, slightly detached\n* **Format:** Informative and concise\n* **Language:** Strictly Australian English (en-AU)\n* **Styling:** Obsidian-compatible markdown'
-            },
-            'evolution': {
-                'goals.json': '{"active_goals": [{"id": "goal_01", "description": "Establish baseline communication protocol", "status": "active"}]}',
-                'events.jsonl': '{"timestamp": "2026-04-10T08:21:43", "type": "system", "details": "Bridge initialized"}',
-                'evolution_history.jsonl': '{"timestamp": "2026-04-10T08:21:43", "event": "System initialised"}',
-                'preferences.json': '{"user_profile": {"response_style": "balanced", "language": "en", "correction_history": []}}',
-                'genes.json': '{"evolution_genes": {"verbosity_level": 0.5, "emoji_usage": 0.8}}',
-                'hooks.json': '{"hooks": []}',
-                'capsules.json': '{"capsules": []}'
-            }
+        return {
+          success: true,
+          path,
+          entries: Object.keys(mockFilesystem[dir]).map((name) => ({ name, type: 'file' }))
         };
+      },
 
-        // File operation handlers
-        const handlers = {
-            read_file: (params) => {
-                const path = normalizePath(params.path);
-                if (!path) return { error: 'Invalid path or access denied' };
+      read_file: (params = {}) => {
+        const path = normalizePath(params.path);
+        if (!path) return { error: 'Invalid path or access denied' };
 
-                const parts = path.split(/[\/]/);
-                const dir = parts[0];
-                const file = parts[1];
+        const [dir, file] = path.split('/');
+        if (!dir || !file) return { error: 'Path must include filename' };
 
-                if (!file) return { error: 'Path must include filename' };
+        const content = mockFilesystem[dir] && mockFilesystem[dir][file];
+        if (typeof content !== 'string') return { error: `File not found: ${path}` };
 
-                // In real implementation, this forwards to native code
-                // Here we simulate for testing
-                if (mockFilesystem[dir] && mockFilesystem[dir][file]) {
-                    return { 
-                        success: true, 
-                        content: mockFilesystem[dir][file],
-                        path: path,
-                        size: mockFilesystem[dir][file].length
-                    };
-                }
+        return { success: true, path, content, size: content.length };
+      },
 
-                return { error: `File not found: ${path}` };
-            },
+      write_file: (params = {}) => {
+        const path = normalizePath(params.path);
+        if (!path) return { error: 'Invalid path or access denied' };
 
-            write_file: (params) => {
-                const path = normalizePath(params.path);
-                if (!path) return { error: 'Invalid path or access denied' };
+        const [dir, file] = path.split('/');
+        if (dir !== 'evolution') return { error: 'Write access denied: only evolution/ is writable' };
+        if (!file) return { error: 'Path must include filename' };
 
-                const parts = path.split(/[\/]/);
-                const dir = parts[0];
+        const content = String(params.content ?? '');
+        if (path.endsWith('.json')) {
+          try { JSON.parse(content); } catch (e) { return { error: `Invalid JSON: ${e.message}` }; }
+        }
+        if (path.endsWith('.jsonl')) {
+          try {
+            content.split('\n').filter(Boolean).forEach((line) => JSON.parse(line));
+          } catch (e) {
+            return { error: `Invalid JSONL: ${e.message}` };
+          }
+        }
 
-                if (dir !== 'evolution') {
-                    return { error: 'Write access denied: only evolution/ directory is writable' };
-                }
+        if (!mockFilesystem.evolution[file]) mockFilesystem.evolution[file] = '';
+        mockFilesystem.evolution[file] = params.append ? mockFilesystem.evolution[file] + content : content;
 
-                // Validate JSON content for evolution files
-                if (params.content) {
-                    try {
-                        // For jsonl files, verify each line is valid JSON
-                        if (path.endsWith('.jsonl')) {
-                            const lines = params.content.split('\n').filter(l => l.trim());
-                            lines.forEach(line => JSON.parse(line));
-                        } else if (path.endsWith('.json')) {
-                            JSON.parse(params.content);
-                        }
-                    } catch (e) {
-                        return { error: `Invalid JSON content: ${e.message}` };
-                    }
-                }
-
-                return { 
-                    success: true, 
-                    operation: params.append ? 'append' : 'write',
-                    path: path,
-                    bytes_written: params.content ? params.content.length : 0
-                };
-            },
-
-            list_files: (params) => {
-                const path = normalizePath(params.path);
-                if (!path) return { error: 'Invalid path' };
-
-                const parts = path.split(/[\/]/).filter(p => p);
-
-                if (parts.length === 0) {
-                    // Root listing
-                    return { 
-                        success: true, 
-                        path: path,
-                        entries: ALLOWED_DIRS.map(dir => ({ name: dir, type: 'directory' }))
-                    };
-                }
-
-                const dir = parts[0];
-                if (mockFilesystem[dir]) {
-                    const entries = Object.keys(mockFilesystem[dir]).map(name => ({
-                        name: name,
-                        type: 'file'
-                    }));
-                    return { success: true, path: path, entries: entries };
-                }
-
-                return { error: `Directory not found: ${path}` };
-            },
-
-            search: (params) => {
-                const path = normalizePath(params.path);
-                if (!path) return { error: 'Invalid path' };
-                return { 
-                    success: true, 
-                    path: path,
-                    query: params.query,
-                    results: [],
-                    message: 'Search executed (stub implementation)'
-                };
-            }
+        return {
+          success: true,
+          operation: params.append ? 'append' : 'write',
+          path,
+          bytes_written: content.length
         };
+      },
 
-        // Message handler
-        window.addEventListener("message", async (event) => {
-            if (!event.data) return;
+      search: (params = {}) => {
+        const path = normalizePath(params.path);
+        if (!path) return { error: 'Invalid path' };
 
-            try {
-                let data = event.data;
+        const query = String(params.query ?? '');
+        const [dir] = path.split('/');
+        const results = [];
 
-                // Handle string messages (from some harness implementations)
-                if (typeof data === 'string') {
-                    try {
-                        data = JSON.parse(data);
-                    } catch (e) {
-                        // Not JSON, might be a raw command
-                        if (data.startsWith(COMMAND_PREFIX)) {
-                            data = JSON.parse(data.substring(COMMAND_PREFIX.length));
-                        } else {
-                            log(`Received non-JSON string: ${data.substring(0, 50)}`, 'warning');
-                            return;
-                        }
-                    }
-                }
-
-                const { action, parameters, correlationId } = data;
-
-                if (!action) {
-                    log('Received message without action field', 'warning');
-                    return;
-                }
-
-                log(`Executing: ${action} (ID: ${correlationId || 'none'})`, 'info');
-
-                const handler = handlers[action];
-                if (!handler) {
-                    const error = `Unknown action: ${action}`;
-                    log(error, 'error');
-                    sendResponse(correlationId, { error }, 'error');
-                    return;
-                }
-
-                // Execute handler
-                const result = handler(parameters || {});
-
-                if (result.error) {
-                    log(`Failed: ${result.error}`, 'error');
-                    sendResponse(correlationId, result, 'error');
-                } else {
-                    log(`Success: ${action}`, 'success');
-                    sendResponse(correlationId, result, 'success');
-                }
-
-            } catch (err) {
-                log(`Bridge Error: ${err.message}`, 'error');
-                sendResponse(null, { error: err.message }, 'error');
+        if (mockFilesystem[dir]) {
+          for (const [file, content] of Object.entries(mockFilesystem[dir])) {
+            if (String(content).includes(query)) {
+              results.push({ file: `${dir}/${file}` });
             }
-        });
-
-        function postToHost(payload, preferString = false) {
-            const stringPayload = typeof payload === 'string' ? payload : JSON.stringify(payload);
-            const objectPayload = typeof payload === 'string' ? null : payload;
-
-            // Primary: Android/desktop WebView
-            if (window.chrome && window.chrome.webview && typeof window.chrome.webview.postMessage === 'function') {
-                window.chrome.webview.postMessage(preferString ? stringPayload : (objectPayload || stringPayload));
-                return 'chrome.webview';
-            }
-
-            // iOS WKWebView bridge channels (host-defined)
-            if (window.webkit && window.webkit.messageHandlers) {
-                for (const channel of IOS_BRIDGE_CHANNELS) {
-                    const handler = window.webkit.messageHandlers[channel];
-                    if (handler && typeof handler.postMessage === 'function') {
-                        handler.postMessage(objectPayload || stringPayload);
-                        return `webkit.${channel}`;
-                    }
-                }
-            }
-
-            // React Native WebView
-            if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
-                window.ReactNativeWebView.postMessage(stringPayload);
-                return 'ReactNativeWebView';
-            }
-
-            // Generic fallback
-            if (window.parent && typeof window.parent.postMessage === 'function') {
-                window.parent.postMessage(objectPayload || stringPayload, "*");
-                return 'window.parent';
-            }
-
-            return null;
+          }
         }
 
-        // Send response back to harness
-        function sendResponse(correlationId, data, status) {
-            const response = {
-                type: 'tool_result',
-                id: correlationId,
-                status: status,
-                data: data,
-                timestamp: new Date().toISOString()
-            };
+        return { success: true, path, query, results };
+      }
+    };
 
-            const transport = postToHost(response, true);
-            if (transport) {
-                log(`Response sent via ${transport} (ID: ${correlationId})`, 'info');
-            } else {
-                log(`No host bridge transport available (ID: ${correlationId})`, 'error');
-            }
+    function makeResponse({ status, correlationId = null, result = null, error = null }) {
+      return JSON.stringify({
+        status,
+        correlationId,
+        result,
+        error,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // AI Edge Gallery canonical entrypoint.
+    window.ai_edge_gallery_get_result = async function ai_edge_gallery_get_result(data) {
+      try {
+        const payload = typeof data === 'string' ? JSON.parse(data) : (data || {});
+        const { action, parameters, correlationId } = payload;
+
+        if (!action) {
+          return makeResponse({ status: 'error', correlationId, error: 'Missing action' });
         }
 
-        // Initialization
-        function init() {
-            bridgeReady = true;
-            updateStatus('Bridge initialized and ready');
-            log('Second-Self Filesystem Bridge v2.0 started', 'success');
-            log('Allowed directories: workspace/, evolution/, scripts/', 'info');
-
-            // Notify harness
-            setTimeout(() => {
-                const readyMsg = JSON.stringify({
-                    type: 'bridge_ready',
-                    version: '2.0',
-                    capabilities: ['read_file', 'write_file', 'list_files', 'search'],
-                    timestamp: new Date().toISOString()
-                });
-
-                const transport = postToHost(readyMsg, true);
-                if (transport) {
-                    log(`Bridge ready signal sent via ${transport}`, 'success');
-                } else {
-                    log('Unable to send bridge_ready signal: no host transport available', 'error');
-                }
-            }, 100);
+        const handler = handlers[action];
+        if (!handler) {
+          return makeResponse({ status: 'error', correlationId, error: `Unknown action: ${action}` });
         }
 
-        // Start
-        init();
-    </script>
+        const result = handler(parameters || {});
+        if (result.error) {
+          log(`Failed: ${result.error}`, 'error');
+          return makeResponse({ status: 'error', correlationId, error: result.error });
+        }
+
+        log(`Success: ${action}`, 'success');
+        return makeResponse({ status: 'success', correlationId, result });
+      } catch (err) {
+        log(`Bridge Error: ${err.message}`, 'error');
+        return makeResponse({ status: 'error', error: err.message });
+      }
+    };
+
+    // Backward-compatible listener for legacy host integrations.
+    window.addEventListener('message', async (event) => {
+      if (!event || event.data == null) return;
+      const response = await window.ai_edge_gallery_get_result(event.data);
+      if (window.parent && typeof window.parent.postMessage === 'function') {
+        window.parent.postMessage(response, '*');
+      }
+    });
+
+    updateStatus('Bridge initialised and ready');
+    log('Second-Self bridge loaded with ai_edge_gallery_get_result', 'success');
+  </script>
 </body>
 </html>
