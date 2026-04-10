@@ -1,0 +1,19 @@
+{
+  "name": "second-self",
+  "version": "2.0",
+  "type": "agent-skill",
+  "requires": {
+    "webview": true,
+    "filesystem_bridge": true,
+    "permissions": [
+      "read:workspace/*",
+      "read:evolution/*",
+      "write:evolution/*"
+    ]
+  },
+  "entry_points": {
+    "instructions": "SKILL.md",
+    "bridge": "scripts/index.html"
+  },
+  "description": "Persistent digital persona with filesystem-backed memory"
+}
