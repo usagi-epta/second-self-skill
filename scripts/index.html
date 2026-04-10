@@ -64,6 +64,7 @@
         const COMMAND_PREFIX = "FS_CMD:";
         const pendingOperations = new Map();
         const ALLOWED_DIRS = ['workspace', 'evolution', 'scripts'];
+        const IOS_BRIDGE_CHANNELS = ['aiEdgeBridge', 'bridge', 'filesystemBridge'];
         let bridgeReady = false;
 
         // Logging utility
@@ -101,8 +102,9 @@
             cleanPath = cleanPath.replace(/\.\.\\/g, '');
 
             // Check if path starts with allowed directory
-            const isValid = ALLOWED_DIRS.some(dir => 
-                cleanPath === dir || cleanPath.startsWith(dir + '/') || cleanPath.startsWith(dir + '\')
+            const normalizedSeparators = cleanPath.replace(/\\/g, '/');
+            const isValid = ALLOWED_DIRS.some(dir =>
+                normalizedSeparators === dir || normalizedSeparators.startsWith(dir + '/')
             );
 
             if (!isValid) {
@@ -288,6 +290,42 @@
             }
         });
 
+        function postToHost(payload, preferString = false) {
+            const stringPayload = typeof payload === 'string' ? payload : JSON.stringify(payload);
+            const objectPayload = typeof payload === 'string' ? null : payload;
+
+            // Primary: Android/desktop WebView
+            if (window.chrome && window.chrome.webview && typeof window.chrome.webview.postMessage === 'function') {
+                window.chrome.webview.postMessage(preferString ? stringPayload : (objectPayload || stringPayload));
+                return 'chrome.webview';
+            }
+
+            // iOS WKWebView bridge channels (host-defined)
+            if (window.webkit && window.webkit.messageHandlers) {
+                for (const channel of IOS_BRIDGE_CHANNELS) {
+                    const handler = window.webkit.messageHandlers[channel];
+                    if (handler && typeof handler.postMessage === 'function') {
+                        handler.postMessage(objectPayload || stringPayload);
+                        return `webkit.${channel}`;
+                    }
+                }
+            }
+
+            // React Native WebView
+            if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+                window.ReactNativeWebView.postMessage(stringPayload);
+                return 'ReactNativeWebView';
+            }
+
+            // Generic fallback
+            if (window.parent && typeof window.parent.postMessage === 'function') {
+                window.parent.postMessage(objectPayload || stringPayload, "*");
+                return 'window.parent';
+            }
+
+            return null;
+        }
+
         // Send response back to harness
         function sendResponse(correlationId, data, status) {
             const response = {
@@ -298,18 +336,12 @@
                 timestamp: new Date().toISOString()
             };
 
-            const responseStr = JSON.stringify(response);
-
-            // Primary: Android WebView
-            if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage) {
-                window.chrome.webview.postMessage(responseStr);
-            } 
-            // Secondary: Generic postMessage
-            else if (window.parent && window.parent.postMessage) {
-                window.parent.postMessage(response, "*");
+            const transport = postToHost(response, true);
+            if (transport) {
+                log(`Response sent via ${transport} (ID: ${correlationId})`, 'info');
+            } else {
+                log(`No host bridge transport available (ID: ${correlationId})`, 'error');
             }
-
-            log(`Response sent (ID: ${correlationId})`, 'info');
         }
 
         // Initialization
@@ -328,10 +360,11 @@
                     timestamp: new Date().toISOString()
                 });
 
-                if (window.chrome && window.chrome.webview) {
-                    window.chrome.webview.postMessage(readyMsg);
-                } else if (window.parent) {
-                    window.parent.postMessage({ type: 'bridge_ready' }, '*');
+                const transport = postToHost(readyMsg, true);
+                if (transport) {
+                    log(`Bridge ready signal sent via ${transport}`, 'success');
+                } else {
+                    log('Unable to send bridge_ready signal: no host transport available', 'error');
                 }
             }, 100);
         }

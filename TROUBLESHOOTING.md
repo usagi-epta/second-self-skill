@@ -14,6 +14,7 @@ This error means the AI model cannot communicate with the WebView bridge.
 2. **Communication Breakdown**
    - The bridge uses `window.postMessage` API
    - Some harness versions require explicit bridge initialization
+   - iOS/WKWebView hosts may require `window.webkit.messageHandlers.<channel>.postMessage`
    - Try restarting the conversation/session
 
 3. **Path Issues**
@@ -41,6 +42,10 @@ If the model consistently fails to load:
 1. Check if `scripts/index.html` is valid HTML with embedded JavaScript
 2. Verify no syntax errors in the JavaScript (check console if possible)
 3. Ensure the bridge sends the `bridge_ready` signal on load
+4. On iOS, verify the host app has a message handler channel that matches one of:
+   - `aiEdgeBridge`
+   - `bridge`
+   - `filesystemBridge`
 
 ### Expected Behavior
 

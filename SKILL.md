@@ -4,6 +4,52 @@ description: A persistent digital persona maintaining identity across sessions v
 requires:
   - filesystem_bridge
   - webview
+tools:
+  - name: list_files
+    description: List files in workspace/, evolution/, or scripts/.
+    input_schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: Relative directory path inside workspace, evolution, or scripts.
+      required: [path]
+  - name: read_file
+    description: Read a UTF-8 text file from workspace/ or evolution/.
+    input_schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: Relative file path inside workspace/ or evolution/.
+      required: [path]
+  - name: write_file
+    description: Write or append content to files in evolution/.
+    input_schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: Relative file path inside evolution/.
+        content:
+          type: string
+          description: File content to write.
+        append:
+          type: boolean
+          description: Append content when true, overwrite when false.
+      required: [path, content]
+  - name: search
+    description: Search for text inside files in the allowed directories.
+    input_schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: Relative directory or file path in allowed directories.
+        query:
+          type: string
+          description: Text query to search for.
+      required: [path, query]
 ---
 
 # Second-Self: Digital Persona Execution Protocol
