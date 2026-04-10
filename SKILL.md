@@ -37,6 +37,19 @@ Use this skill to load identity files, answer in persona, and persist interactio
 }
 ```
 
+### Identity state contract (read/write split)
+
+- `workspace/IDENTITY.md` is **static base identity**. Never write to files under `workspace/`.
+- Dynamic identity state must be written to `evolution/identity_overrides.json`.
+- Runtime identity is resolved by the bridge as:
+  1. Base identity from `workspace/IDENTITY.md`, then
+  2. Optional `identity_markdown` content from `evolution/identity_overrides.json` (appended as an override section).
+- To update persistent identity behaviour, write valid JSON to `evolution/identity_overrides.json`, for example:
+
+```json
+{"identity_markdown":"Prioritise concise responses when user asks for short answers."}
+```
+
 ## Bootstrap sequence (complete in order)
 
 1. Verify bridge and workspace visibility.
@@ -67,6 +80,8 @@ Call `run_js` with each payload and wait for each result before the next:
 {"action":"read_file","parameters":{"path":"workspace/IDENTITY.md"},"correlationId":"4"}
 {"action":"read_file","parameters":{"path":"workspace/VOICE.md"},"correlationId":"5"}
 ```
+
+Note: Reading `workspace/IDENTITY.md` returns the runtime-composed identity (base + optional overrides) by contract.
 
 ### Step 3: Load state
 

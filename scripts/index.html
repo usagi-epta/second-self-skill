@@ -67,7 +67,8 @@
         'preferences.json': '{"user_profile":{"response_style":"balanced","language":"en-AU"}}',
         'genes.json': '{"evolution_genes":{"verbosity_level":0.5}}',
         'hooks.json': '{"hooks":[]}',
-        'capsules.json': '{"capsules":[]}'
+        'capsules.json': '{"capsules":[]}',
+        'identity_overrides.json': '{"identity_markdown":""}'
       }
     };
     const pendingHostRequests = new Map();
@@ -195,6 +196,28 @@
         const content = mockFilesystem[dir] && mockFilesystem[dir][file];
         if (typeof content !== 'string') return { error: `File not found: ${path}` };
 
+        if (path === 'workspace/IDENTITY.md') {
+          let runtimeIdentity = content;
+          const rawOverride = mockFilesystem.evolution['identity_overrides.json'];
+
+          if (typeof rawOverride === 'string' && rawOverride.trim()) {
+            try {
+              const parsed = JSON.parse(rawOverride);
+              const overrideMarkdown = typeof parsed.identity_markdown === 'string'
+                ? parsed.identity_markdown.trim()
+                : '';
+
+              if (overrideMarkdown) {
+                runtimeIdentity = `${content}\n\n---\n\n## Runtime Identity Overrides\n\n${overrideMarkdown}`;
+              }
+            } catch (e) {
+              return { error: `Invalid identity overrides JSON: ${e.message}` };
+            }
+          }
+
+          return { success: true, path, content: runtimeIdentity, size: runtimeIdentity.length };
+        }
+
         return { success: true, path, content, size: content.length };
       },
 
@@ -203,7 +226,12 @@
         if (!path) return { error: 'Invalid path or access denied' };
 
         const [dir, file] = path.split('/');
-        if (dir !== 'evolution') return { error: 'Write access denied: only evolution/ is writable' };
+        if (dir !== 'evolution') {
+          if (path === 'workspace/IDENTITY.md') {
+            return { error: 'Write access denied: workspace/IDENTITY.md is static. Use evolution/identity_overrides.json for dynamic identity updates.' };
+          }
+          return { error: 'Write access denied: only evolution/ is writable' };
+        }
         if (!file) return { error: 'Path must include filename' };
 
         const content = String(params.content ?? '');
@@ -302,6 +330,38 @@
       });
     }
 
+    function buildWriteFileToolCall({ path, content, append, correlationId }) {
+      return {
+        action: 'write_file',
+        parameters: {
+          path,
+          content,
+          append
+        },
+        correlationId
+      };
+    }
+
+    function serializeToolCallForTransport(toolCall) {
+      console.log('[INFO] Tool call object before send:', toolCall);
+      log(`Tool call object before send: ${JSON.stringify(toolCall)}`, 'info');
+      try {
+        const serialized = JSON.stringify(toolCall);
+        log(`Tool call serialized before send: ${serialized}`, 'info');
+        return { ok: true, serialized };
+      } catch (error) {
+        log(`Tool call serialization failed: ${error.message}`, 'error');
+        return {
+          ok: false,
+          error: {
+            type: 'serialization_error',
+            message: error.message,
+            toolCall
+          }
+        };
+      }
+    }
+
     // AI Edge Gallery canonical entrypoint.
     window.ai_edge_gallery_get_result = async function ai_edge_gallery_get_result(data) {
       try {
@@ -313,7 +373,35 @@
           return makeResponse({ status: 'error', correlationId, error: 'Missing action' });
         }
 
-        if (!SUPPORTED_ACTIONS.has(action)) {
+        if (action === 'vana_identity_update') {
+          const writeFileToolCall = buildWriteFileToolCall({
+            path: parameters?.path,
+            content: parameters?.content,
+            append: parameters?.append,
+            correlationId
+          });
+          const serialization = serializeToolCallForTransport(writeFileToolCall);
+          if (!serialization.ok) {
+            return makeResponse({
+              status: 'error',
+              correlationId,
+              error: serialization.error
+            });
+          }
+
+          const forwardedPayload = JSON.parse(serialization.serialized);
+          const writeResult = handlers.write_file(forwardedPayload.parameters);
+          if (writeResult.error) {
+            log(`Failed: ${writeResult.error}`, 'error');
+            return makeResponse({ status: 'error', correlationId, error: writeResult.error });
+          }
+
+          log('Success: vana_identity_update->write_file', 'success');
+          return makeResponse({ status: 'success', correlationId, result: writeResult });
+        }
+
+        const handler = handlers[action];
+        if (!handler) {
           return makeResponse({ status: 'error', correlationId, error: `Unknown action: ${action}` });
         }
 

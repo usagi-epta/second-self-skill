@@ -31,6 +31,7 @@ second-self/
     ├── goals.json
     ├── events.jsonl
     ├── genes.json
+    ├── identity_overrides.json
     └── preferences.json
 ```
 ## Credits
