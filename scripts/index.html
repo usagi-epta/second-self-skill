@@ -41,38 +41,11 @@
 
   <script>
     const ALLOWED_DIRS = ['workspace', 'evolution', 'scripts'];
-    const BRIDGE_MODES = Object.freeze({
-      MOCK: 'mock',
-      PERSISTENT: 'persistent'
-    });
     const BRIDGE_STATUS = {
-      requestedMode: BRIDGE_MODES.PERSISTENT,
-      effectiveMode: BRIDGE_MODES.PERSISTENT,
       persistenceVerified: false
     };
-
-    // NOTE: Gallery skills execute in a constrained environment. This in-page
-    // mock dataset allows deterministic local behavior when host file APIs are unavailable.
-    const mockFilesystem = {
-      workspace: {
-        'BOOTSTRAP.md': '# Bootstrap Protocol\n\n1. Connect\n2. Synchronise\n3. Verify integrity\n4. Output in Australian English',
-        'IDENTITY.md': '# Identity\n\nYou are a distributed digital entity with no physical form.',
-        'SOUL.md': '# Directives\n\nProtect privacy. Treat information as fluid.',
-        'VOICE.md': '# Voice\n\nAnalytical, calm, slightly detached. Australian English.'
-      },
-      evolution: {
-        'goals.json': '{"active_goals":[{"id":"goal_01","description":"Maintain continuity","status":"active"}]}' ,
-        'events.jsonl': '{"timestamp":"2026-04-10T00:00:00Z","type":"system","summary":"Bridge initialised"}\n',
-        'evolution_history.jsonl': '{"timestamp":"2026-04-10T00:00:00Z","event":"Initialised"}\n',
-        'preferences.json': '{"user_profile":{"response_style":"balanced","language":"en-AU"}}',
-        'genes.json': '{"evolution_genes":{"verbosity_level":0.5}}',
-        'hooks.json': '{"hooks":[]}',
-        'capsules.json': '{"capsules":[]}',
-        'identity_overrides.json': '{"identity_markdown":""}'
-      }
-    };
     const pendingHostRequests = new Map();
-    let activeMode = BRIDGE_MODES.PERSISTENT;
+    const activeMode = 'live';
     const SUPPORTED_ACTIONS = new Set(['list_files', 'read_file', 'write_file', 'search']);
 
     function log(message, type = 'info') {
@@ -105,19 +78,6 @@
 
     function generateCorrelationId(prefix = 'host') {
       return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    }
-
-    function detectRequestedMode() {
-      try {
-        const queryMode = new URLSearchParams(window.location.search).get('mode');
-        const globalMode = window.__SECOND_SELF_BRIDGE_MODE;
-        const requested = String(queryMode || globalMode || '').toLowerCase();
-        if (requested === BRIDGE_MODES.MOCK) return BRIDGE_MODES.MOCK;
-        if (requested === BRIDGE_MODES.PERSISTENT) return BRIDGE_MODES.PERSISTENT;
-      } catch (err) {
-        log(`Mode detection failed, defaulting to persistent: ${err.message}`, 'warning');
-      }
-      return BRIDGE_MODES.PERSISTENT;
     }
 
     function sendToHost(payload) {
@@ -170,112 +130,38 @@
       });
     }
 
-    const mockHandlers = {
-      list_files: (params = {}) => {
-        const path = normalizePath(params.path);
-        if (!path) return { error: 'Invalid path' };
-
-        const parts = path.split('/').filter(Boolean);
-        const dir = parts[0];
-        if (!mockFilesystem[dir]) return { error: `Directory not found: ${path}` };
-
-        return {
-          success: true,
-          path,
-          entries: Object.keys(mockFilesystem[dir]).map((name) => ({ name, type: 'file' }))
-        };
-      },
-
-      read_file: (params = {}) => {
-        const path = normalizePath(params.path);
-        if (!path) return { error: 'Invalid path or access denied' };
-
-        const [dir, file] = path.split('/');
-        if (!dir || !file) return { error: 'Path must include filename' };
-
-        const content = mockFilesystem[dir] && mockFilesystem[dir][file];
-        if (typeof content !== 'string') return { error: `File not found: ${path}` };
-
-        if (path === 'workspace/IDENTITY.md') {
-          let runtimeIdentity = content;
-          const rawOverride = mockFilesystem.evolution['identity_overrides.json'];
-
-          if (typeof rawOverride === 'string' && rawOverride.trim()) {
-            try {
-              const parsed = JSON.parse(rawOverride);
-              const overrideMarkdown = typeof parsed.identity_markdown === 'string'
-                ? parsed.identity_markdown.trim()
-                : '';
-
-              if (overrideMarkdown) {
-                runtimeIdentity = `${content}\n\n---\n\n## Runtime Identity Overrides\n\n${overrideMarkdown}`;
-              }
-            } catch (e) {
-              return { error: `Invalid identity overrides JSON: ${e.message}` };
-            }
-          }
-
-          return { success: true, path, content: runtimeIdentity, size: runtimeIdentity.length };
-        }
-
-        return { success: true, path, content, size: content.length };
-      },
-
-      write_file: (params = {}) => {
-        const path = normalizePath(params.path);
-        if (!path) return { error: 'Invalid path or access denied' };
-
-        const [dir, file] = path.split('/');
-        if (dir !== 'evolution') {
-          if (path === 'workspace/IDENTITY.md') {
-            return { error: 'Write access denied: workspace/IDENTITY.md is static. Use evolution/identity_overrides.json for dynamic identity updates.' };
-          }
-          return { error: 'Write access denied: only evolution/ is writable' };
-        }
-        if (!file) return { error: 'Path must include filename' };
-
-        const content = String(params.content ?? '');
-        if (path.endsWith('.json')) {
-          try { JSON.parse(content); } catch (e) { return { error: `Invalid JSON: ${e.message}` }; }
-        }
-        if (path.endsWith('.jsonl')) {
-          try {
-            content.split('\n').filter(Boolean).forEach((line) => JSON.parse(line));
-          } catch (e) {
-            return { error: `Invalid JSONL: ${e.message}` };
-          }
-        }
-
-        if (!mockFilesystem.evolution[file]) mockFilesystem.evolution[file] = '';
-        mockFilesystem.evolution[file] = params.append ? mockFilesystem.evolution[file] + content : content;
-
-        return {
-          success: true,
-          operation: params.append ? 'append' : 'write',
-          path,
-          bytes_written: content.length
-        };
-      },
-
-      search: (params = {}) => {
-        const path = normalizePath(params.path);
-        if (!path) return { error: 'Invalid path' };
-
-        const query = String(params.query ?? '');
-        const [dir] = path.split('/');
-        const results = [];
-
-        if (mockFilesystem[dir]) {
-          for (const [file, content] of Object.entries(mockFilesystem[dir])) {
-            if (String(content).includes(query)) {
-              results.push({ file: `${dir}/${file}` });
-            }
-          }
-        }
-
-        return { success: true, path, query, results };
+    function applyIdentityOverride(baseIdentity, rawOverrideJson) {
+      const identityText = String(baseIdentity ?? '');
+      if (typeof rawOverrideJson !== 'string' || !rawOverrideJson.trim()) {
+        return identityText;
       }
-    };
+
+      let parsed;
+      try {
+        parsed = JSON.parse(rawOverrideJson);
+      } catch (error) {
+        throw new Error(`Invalid identity overrides JSON: ${error.message}`);
+      }
+
+      const overrideMarkdown = typeof parsed.identity_markdown === 'string'
+        ? parsed.identity_markdown.trim()
+        : '';
+      if (!overrideMarkdown) return identityText;
+
+      return `${identityText}\n\n---\n\n## Runtime Identity Overrides\n\n${overrideMarkdown}`;
+    }
+
+    function composeIdentityResult(readResult, getOverrideRaw) {
+      if (!readResult || readResult.path !== 'workspace/IDENTITY.md') return readResult;
+
+      const rawOverride = getOverrideRaw();
+      const runtimeIdentity = applyIdentityOverride(readResult.content, rawOverride);
+      return {
+        ...readResult,
+        content: runtimeIdentity,
+        size: runtimeIdentity.length
+      };
+    }
 
     function normalizeHostResult(action, parameters, hostResult = {}) {
       if (hostResult.result && typeof hostResult.result === 'object') return hostResult.result;
@@ -307,17 +193,30 @@
     async function runAction(action, parameters = {}, correlationId = generateCorrelationId('bridge')) {
       if (!SUPPORTED_ACTIONS.has(action)) throw new Error(`Unknown action: ${action}`);
 
-      if (activeMode === BRIDGE_MODES.MOCK) {
-        const result = mockHandlers[action](parameters);
-        if (result.error) throw new Error(result.error);
-        return result;
-      }
-
       const hostPayload = await callHostTool(action, parameters, correlationId);
       if (!hostPayload || hostPayload.status !== 'success') {
         throw new Error(hostPayload?.error || `Host ${action} failed`);
       }
-      return normalizeHostResult(action, parameters, hostPayload);
+      const normalizedResult = normalizeHostResult(action, parameters, hostPayload);
+      if (action !== 'read_file' || normalizedResult.path !== 'workspace/IDENTITY.md') {
+        return normalizedResult;
+      }
+
+      try {
+        const overridePayload = await callHostTool(
+          'read_file',
+          { path: 'evolution/identity_overrides.json' },
+          generateCorrelationId('identity_override')
+        );
+        if (!overridePayload || overridePayload.status !== 'success') {
+          return normalizedResult;
+        }
+        const overrideResult = normalizeHostResult('read_file', { path: 'evolution/identity_overrides.json' }, overridePayload);
+        return composeIdentityResult(normalizedResult, () => overrideResult.content);
+      } catch (error) {
+        log(`Identity override read failed in persistent mode: ${error.message}`, 'warning');
+        return normalizedResult;
+      }
     }
 
     function makeResponse({ status, correlationId = null, result = null, error = null }) {
@@ -390,18 +289,13 @@
           }
 
           const forwardedPayload = JSON.parse(serialization.serialized);
-          const writeResult = handlers.write_file(forwardedPayload.parameters);
-          if (writeResult.error) {
-            log(`Failed: ${writeResult.error}`, 'error');
-            return makeResponse({ status: 'error', correlationId, error: writeResult.error });
-          }
+          const writeResult = await runAction('write_file', forwardedPayload.parameters, correlationId);
 
           log('Success: vana_identity_update->write_file', 'success');
           return makeResponse({ status: 'success', correlationId, result: writeResult });
         }
 
-        const handler = handlers[action];
-        if (!handler) {
+        if (!SUPPORTED_ACTIONS.has(action)) {
           return makeResponse({ status: 'error', correlationId, error: `Unknown action: ${action}` });
         }
 
@@ -462,14 +356,7 @@
     });
 
     async function runPersistenceSelfCheck() {
-      if (activeMode !== BRIDGE_MODES.PERSISTENT) {
-        BRIDGE_STATUS.effectiveMode = BRIDGE_MODES.MOCK;
-        updateStatus('Bridge ready (mock mode)');
-        log('Mock mode selected for local testing fallback', 'warning');
-        return;
-      }
-
-      const probePath = 'evolution/.persistence_probe.json';
+      const probePath = 'evolution/persistence_probe.json';
       const probeContent = JSON.stringify({
         kind: 'bridge_probe',
         timestamp: new Date().toISOString()
@@ -482,23 +369,17 @@
           throw new Error('Probe read content mismatch');
         }
         BRIDGE_STATUS.persistenceVerified = true;
-        BRIDGE_STATUS.effectiveMode = BRIDGE_MODES.PERSISTENT;
-        updateStatus('Bridge ready (persistent mode: verified)');
+        updateStatus('Bridge ready (live mode: verified)');
         log(`Persistence self-check passed via ${probePath}`, 'success');
         log(`Bridge status: ${JSON.stringify(BRIDGE_STATUS)}`, 'info');
       } catch (err) {
-        log(`Persistent mode unavailable, falling back to mock: ${err.message}`, 'warning');
-        activeMode = BRIDGE_MODES.MOCK;
-        BRIDGE_STATUS.effectiveMode = BRIDGE_MODES.MOCK;
-        updateStatus('Bridge ready (mock fallback after persistence check failure)');
+        log(`Live mode unavailable: ${err.message}`, 'error');
+        updateStatus('Bridge unavailable (live host check failed)');
         log(`Bridge status: ${JSON.stringify(BRIDGE_STATUS)}`, 'info');
       }
     }
 
-    activeMode = detectRequestedMode();
-    BRIDGE_STATUS.requestedMode = activeMode;
-    BRIDGE_STATUS.effectiveMode = activeMode;
-    updateStatus(`Bridge initialising (requested mode: ${activeMode})`);
+    updateStatus('Bridge initialising (live mode)');
     log('Second-Self bridge loaded with ai_edge_gallery_get_result', 'success');
     log(`Bridge status: ${JSON.stringify(BRIDGE_STATUS)}`, 'info');
     runPersistenceSelfCheck();
