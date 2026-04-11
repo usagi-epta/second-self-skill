@@ -20,6 +20,8 @@ from pathlib import Path
 from enum import Enum
 import copy
 
+from recursive_agent import L3EgoState, ObservationMask, SkillFactory, MemGPTLite
+
 
 class RiskLevel(Enum):
     """Risk classification per SafeClaw-R framework"""
@@ -232,11 +234,46 @@ class AdvancedRecursiveAgent:
         # Governance
         self.circuit_breaker_tripped = False
         self.session_count = 0
+        self.interaction_count = 0
 
         print(f"\n🔒 [SECURE AGENT] {name} initialised")
         if enable_safety:
             print(f"    Safety: {len(self.safety.policies)} policies active")
         print(f"    Verification: {self.verifier.num_verifiers}-agent consensus")
+
+    def process_input(self, user_input: str) -> str:
+        """Process input with safety checks and core memory pipeline."""
+        self.interaction_count += 1
+
+        if self.safety:
+            is_safe, violations = self.safety.validate_skill(user_input)
+            if not is_safe:
+                self.circuit_breaker_tripped = True
+                return f"❌ Input blocked by safety policy: {'; '.join(violations)}"
+
+        self.memory.write_to_ram(user_input, "user_input")
+        reasoning = self._simulate_reasoning()
+        self.memory.write_to_ram(reasoning, "reasoning")
+        response = self._generate_response(user_input)
+        self.memory.write_to_ram(response, "assistant_output")
+        return response
+
+    def _simulate_reasoning(self) -> str:
+        l3 = self.memory.ram['l3_ego']
+        return (
+            f"Secure reasoning on L3 v{l3.persona_version} | "
+            f"alignment {l3.cognitive_alignment_score:.2f} | "
+            f"safety={'on' if self.safety else 'off'}"
+        )
+
+    def _generate_response(self, user_input: str) -> str:
+        l3 = self.memory.ram['l3_ego']
+        return (
+            f"[Secure Second Self v{l3.persona_version}]\n"
+            f"Processed: \"{user_input[:40]}...\"\n"
+            f"Alignment: {l3.cognitive_alignment_score:.1%}\n"
+            f"Circuit Breaker: {'TRIPPED' if self.circuit_breaker_tripped else 'OK'}"
+        )
 
     def create_skill_safe(self, name: str, description: str, instructions: str) -> Tuple[bool, str]:
         """
@@ -331,11 +368,11 @@ created: {datetime.now(timezone.utc).isoformat()}
             }
         }
 
+    def end_session(self) -> str:
+        """Persist secure agent state and close current session."""
+        self.session_count += 1
+        return self.memory.persist_to_hdd()
 
-# Import base classes from main module
-import sys
-sys.path.insert(0, '/mnt/kimi/output/recursive_self')
-from recursive_agent import L3EgoState, ObservationMask, SkillFactory, MemGPTLite
 
 if __name__ == "__main__":
     # Demonstrate advanced features

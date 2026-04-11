@@ -36,7 +36,7 @@ class TestL3EgoState(unittest.TestCase):
     def test_initial_state(self):
         l3 = L3EgoState()
         self.assertEqual(l3.persona_version, "1.0.0")
-        self.assertEqual(l3.cognitive_alignment_score, 1.0)
+        self.assertEqual(l3.cognitive_alignment_score, 0.95)
         self.assertEqual(len(l3.key_observations), 0)
 
     def test_mutation_increments_version(self):

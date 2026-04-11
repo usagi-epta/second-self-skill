@@ -22,7 +22,7 @@ class L3EgoState:
     persona_version: str = "1.0.0"
     active_context: str = "[INITIATING]"
     key_observations: List[str] = field(default_factory=list)
-    cognitive_alignment_score: float = 1.0
+    cognitive_alignment_score: float = 0.95
     open_loops: List[Dict] = field(default_factory=list)
     learned_patterns: List[Dict] = field(default_factory=list)
 
@@ -210,7 +210,7 @@ class MemGPTLite:
 
     def write_to_ram(self, content: str, content_type: str = "observation"):
         """Write to context window with automatic observation masking"""
-        if content_type == "observation" and len(content) > 200:
+        if content_type in {"observation", "user_input"} and len(content) > 200:
             mask = ObservationMask.from_raw(content, content_type)
             self.ram['observations'].append(mask)
             stored_content = mask.to_placeholder()

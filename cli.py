@@ -123,7 +123,10 @@ Examples:
             print(f"   Session: {args.session}")
 
         # Load agent
-        agent = RecursiveAgent(args.name, args.storage)
+        if args.safety:
+            agent = AdvancedRecursiveAgent(args.name, args.storage, enable_safety=True)
+        else:
+            agent = RecursiveAgent(args.name, args.storage)
 
         print("\n💡 Tips:")
         print("   • Type 'exit' or 'quit' to end session")
@@ -244,6 +247,52 @@ Examples:
                 f.write(content)
 
             print(f"✅ Exported to: {export_path}")
+
+        elif args.format == 'yaml':
+            with open(memories_path, 'r') as f:
+                data = json.load(f)
+
+            export_path = Path(f"{export_name}.yaml")
+            with open(export_path, 'w') as f:
+                f.write(self._dict_to_yaml(data))
+
+            print(f"✅ Exported to: {export_path}")
+            print(f"   Size: {export_path.stat().st_size} bytes")
+
+    def _dict_to_yaml(self, data, indent=0):
+        """Minimal YAML serializer for dict/list/scalar structures."""
+        spaces = "  " * indent
+        if isinstance(data, dict):
+            lines = []
+            for key, value in data.items():
+                if isinstance(value, (dict, list)):
+                    lines.append(f"{spaces}{key}:")
+                    lines.append(self._dict_to_yaml(value, indent + 1))
+                else:
+                    lines.append(f"{spaces}{key}: {self._yaml_scalar(value)}")
+            return "\n".join(lines)
+        if isinstance(data, list):
+            lines = []
+            for item in data:
+                if isinstance(item, (dict, list)):
+                    lines.append(f"{spaces}-")
+                    lines.append(self._dict_to_yaml(item, indent + 1))
+                else:
+                    lines.append(f"{spaces}- {self._yaml_scalar(item)}")
+            return "\n".join(lines)
+        return f"{spaces}{self._yaml_scalar(data)}"
+
+    def _yaml_scalar(self, value):
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if value is None:
+            return "null"
+        if isinstance(value, (int, float)):
+            return str(value)
+        text = str(value).replace("\n", "\\n")
+        if any(c in text for c in [":", "#", "{", "}", "[", "]", ",", '"', "'"]) or text.strip() != text:
+            return json.dumps(text)
+        return text
 
     def _cmd_import(self, args):
         """Import agent state"""
