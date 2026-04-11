@@ -1,8 +1,8 @@
 # Recursive Self-Evolution in Non-Persistent LLM Environments
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)]([https://www.python.org/downloads/](https://www.python.org/downloads/release/python-3820/))
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Architecture: RSD](https://img.shields.io/badge/Architecture-RSD-green.svg)]()
+[![Architecture: RSD](https://img.shields.io/badge/Architecture-RSD-green.svg)](https://en.wikipedia.org/wiki/Recursive_self-improvement)
 
 A complete, production-ready implementation of **Recursive Self-Definition (RSD)** architecture for maintaining persistent AI identity across stateless LLM environments.
 
