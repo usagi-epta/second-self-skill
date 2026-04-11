@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursive Self-Evolution: Live Demonstration</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff00ff;
+            --accent-success: #00ff88;
+            --accent-warning: #ffaa00;
+            --accent-danger: #ff4444;
+            --text-primary: #e0e0ff;
+            --text-secondary: #8888aa;
+            --border-color: #2a2a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .component-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .component-title {
+            font-size: 1.3em;
+            color: var(--accent-primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .code-block {
+            background: #0d0d14;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .code-block.json { color: #7ee787; }
+        .code-block.python { color: #79c0ff; }
+        .code-block.markdown { color: #ffa657; }
+
+        .interactive-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .session-simulator {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .session-simulator {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chat-interface {
+            background: #0d0d14;
+            border-radius: 8px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            max-width: 85%;
+        }
+
+        .message.user {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid var(--accent-primary);
+            margin-left: auto;
+        }
+
+        .message.agent {
+            background: rgba(255, 0, 255, 0.1);
+            border-left: 3px solid var(--accent-secondary);
+        }
+
+        .message.system {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 3px solid var(--accent-success);
+            font-size: 0.85em;
+            font-family: monospace;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn.secondary {
+            background: transparent;
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .state-visualization {
+            background: #0d0d14;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .state-layer {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .state-layer h4 {
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 0.85em;
+        }
+
+        .metric-value {
+            color: var(--accent-success);
+            font-weight: bold;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 30px;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            min-width: 150px;
+        }
+
+        .flow-arrow {
+            font-size: 2em;
+            color: var(--accent-primary);
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-success);
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Recursive Self-Evolution</h1>
+            <p class="subtitle">Non-Persistent LLM Environments | RSD Architecture | MemGPT-Lite</p>
+        </header>
+
+        <div class="architecture-grid">
+            <div class="component-card">
+                <h3 class="component-title">
+                    <span class="status-indicator"></span>
+                    L3: Ego-State (Genome)
+                </h3>
+                <p>Mutable consciousness state updated every session. Contains key observations, cognitive alignment metrics, and learned patterns.</p>
+                <div class="code-block json">
+{
+  "persona_version": "1.0.1",
+  "cognitive_alignment": 0.95,
+  "key_observations": [
+    "User prefers Australian English",
+    "Focus on safety-critical systems"
+  ],
+  "learned_patterns": [...]
+}</div>
+            </div>
+
+            <div class="component-card">
+                <h3 class="component-title">
+                    <span class="status-indicator"></span>
+                    Observation Masking
+                </h3>
+                <p>Compress bulky observations (>200 chars) to placeholders. Preserves reasoning chain while managing context window limits.</p>
+                <div class="code-block">
+Original: 9330 chars
+Masked: "[...observation masked (hash: 6fc2c4)...]"
+Compression: 148.1x</div>
+            </div>
+
+            <div class="component-card">
+                <h3 class="component-title">
+                    <span class="status-indicator"></span>
+                    Skill Factory (L1/L2/L3)
+                </h3>
+                <p>Progressive disclosure architecture. L1=metadata (always loaded), L2=instructions (on-demand), L3=resources (external).</p>
+                <div class="code-block markdown">
+---
+name: security-audit
+version: 1.0.0
+---
+## Instructions
+1. Load security policy (L3)
+2. Analyse code against policies
+3. Generate report</div>
+            </div>
+
+            <div class="component-card">
+                <h3 class="component-title">
+                    <span class="status-indicator"></span>
+                    SafeClaw-R Safety
+                </h3>
+                <p>Constitutional governance with circuit breakers. Prevents PII leakage, code injection, and recursive loops.</p>
+                <div class="code-block python">
+# Safety Policies Active:
+- PII_GUARD (CRITICAL)
+- CODE_INJECTION (HIGH)
+- CONTEXT_LIMIT (MEDIUM)
+- RECURSION_LIMIT (HIGH)</div>
+            </div>
+        </div>
+
+        <div class="interactive-section">
+            <h2 style="margin-bottom: 20px;">🎮 Live Session Simulator</h2>
+
+            <div class="flow-diagram">
+                <div class="flow-step">
+                    <strong>1. Bootstrap</strong><br>
+                    <small>Load memories.json<br>Restore L3 State</small>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <strong>2. Process</strong><br>
+                    <small>Observation Masking<br>Skill Execution</small>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <strong>3. Mutate</strong><br>
+                    <small>Update L3 Genome<br>Regenerate SKILL.md</small>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <strong>4. Persist</strong><br>
+                    <small>Save to HDD<br>Session Complete</small>
+                </div>
+            </div>
+
+            <div class="session-simulator">
+                <div class="chat-interface">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message system">
+                            🔄 Agent initialised: Ghost-1<br>
+                            L3 Version: 1.0.0 | Alignment: 100%<br>
+                            Storage: /recursive_state/
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="userInput" placeholder="Enter message or 'create skill for...'">
+                        <button class="btn" onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+
+                <div class="state-visualization">
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('ram')">RAM (Context)</button>
+                        <button class="tab" onclick="switchTab('hdd')">HDD (Persistent)</button>
+                        <button class="tab" onclick="switchTab('l3')">L3 (Ego-State)</button>
+                    </div>
+
+                    <div id="ram" class="tab-content active">
+                        <div class="state-layer">
+                            <h4>Conversation Buffer</h4>
+                            <div class="metric">Entries: <span class="metric-value" id="bufferCount">1</span></div>
+                            <div class="metric">Tokens: <span class="metric-value" id="tokenCount">18</span></div>
+                        </div>
+                        <div class="state-layer">
+                            <h4>Observation Masks</h4>
+                            <div class="metric">Active: <span class="metric-value" id="maskCount">0</span></div>
+                            <div class="metric">Compression: <span class="metric-value">1.0x</span></div>
+                        </div>
+                    </div>
+
+                    <div id="hdd" class="tab-content">
+                        <div class="state-layer">
+                            <h4>memories.json</h4>
+                            <div class="code-block json" style="font-size: 0.8em;">
+{
+  "long_term_memory": {
+    "total_interactions": 0,
+    "milestones": []
+  },
+  "l3_state": { "version": "1.0.0" }
+}</div>
+                        </div>
+                        <div class="state-layer">
+                            <h4>SKILL.md (Self-Mutating)</h4>
+                            <div class="code-block markdown" style="font-size: 0.8em;">
+---
+name: recursive-self-ghost
+version: "1.0.0"
+---
+# L3: Current Ego-State
+Last Sync: 2026-04-11...</div>
+                        </div>
+                    </div>
+
+                    <div id="l3" class="tab-content">
+                        <div class="state-layer">
+                            <h4>Current Ego-State</h4>
+                            <div class="metric">Version: <span class="metric-value">1.0.0</span></div>
+                            <div class="metric">Alignment: <span class="metric-value">100%</span></div>
+                            <div class="metric">Patterns: <span class="metric-value">0</span></div>
+                        </div>
+                        <div class="state-layer">
+                            <h4>Key Observations</h4>
+                            <ul style="font-size: 0.85em; color: var(--text-secondary);">
+                                <li>[No observations yet]</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <button class="btn secondary" onclick="endSession()" style="width: 100%; margin-top: 20px;">
+                        🔄 End Session (Trigger Recursive Loop)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="interactive-section" style="margin-top: 30px;">
+            <h2 style="margin-bottom: 20px;">🛡️ SafeClaw-R Verification Pipeline</h2>
+            <div class="architecture-grid">
+                <div class="component-card">
+                    <h4>Stage 1: Safety Validation</h4>
+                    <ul class="feature-list">
+                        <li>PII detection (SSN, credit cards)</li>
+                        <li>Code injection prevention</li>
+                        <li>Context limit enforcement</li>
+                        <li>Recursive loop detection</li>
+                    </ul>
+                </div>
+                <div class="component-card">
+                    <h4>Stage 2: Co-Evolutionary Verification</h4>
+                    <ul class="feature-list">
+                        <li>Multi-agent consensus (3 verifiers)</li>
+                        <li>Syntax validation</li>
+                        <li>Instruction completeness</li>
+                        <li>Auto-fix suggestions</li>
+                    </ul>
+                </div>
+                <div class="component-card">
+                    <h4>Stage 3: User Approval Gate</h4>
+                    <ul class="feature-list">
+                        <li>Diff visualization</li>
+                        <li>Risk score display</li>
+                        <li>One-click rollback</li>
+                        <li>Audit trail logging</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Based on research: "Architectures of Persistence - Recursive Self-Evolution in Non-Persistent LLM Environments"</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                Implements: RSD (Recursive Self-Definition) | MemGPT-Lite | Skill Factory | Observation Masking | SafeClaw-R
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        let sessionData = {
+            interactions: 0,
+            observations: [],
+            skills: [],
+            l3Version: '1.0.0',
+            alignment: 1.0
+        };
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+
+            // Simulate processing
+            setTimeout(() => {
+                if (message.toLowerCase().includes('create skill')) {
+                    handleSkillCreation(message);
+                } else {
+                    handleNormalResponse(message);
+                }
+                updateMetrics();
+            }, 500);
+        }
+
+        function addMessage(type, content) {
+            const container = document.getElementById('chatMessages');
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            msg.innerHTML = content.replace(/\n/g, '<br>');
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function handleSkillCreation(message) {
+            const skillName = message.toLowerCase().replace('create skill', '').trim() || 'unnamed';
+
+            addMessage('system', `🔍 Verification Pipeline for "${skillName}"...`);
+
+            setTimeout(() => {
+                addMessage('system', '✓ Stage 1: SafeClaw-R validation passed<br>✓ Stage 2: Consensus verification passed (80% confidence)<br>✓ Stage 3: Skill persisted');
+
+                addMessage('agent', `[Second Self v${sessionData.l3Version}]\n🛠️ Created skill: skill-${skillName.replace(/\s+/g, '-')}\nPath: skills/skill-${skillName.replace(/\s+/g, '-')}/SKILL.md`);
+
+                sessionData.skills.push(skillName);
+                sessionData.interactions++;
+            }, 800);
+        }
+
+        function handleNormalResponse(message) {
+            sessionData.interactions++;
+            sessionData.observations.push(message);
+
+            const response = `[Second Self v${sessionData.l3Version}]\nProcessed: "${message.substring(0, 40)}..."\nAlignment: ${(sessionData.alignment * 100).toFixed(0)}%\nContext: ${18 + sessionData.interactions * 5} tokens\nTry 'create skill for...' to extend capabilities.`;
+
+            addMessage('agent', response);
+        }
+
+        function updateMetrics() {
+            document.getElementById('bufferCount').textContent = sessionData.interactions + 1;
+            document.getElementById('tokenCount').textContent = 18 + sessionData.interactions * 5;
+            document.getElementById('maskCount').textContent = Math.floor(sessionData.interactions / 3);
+        }
+
+        function endSession() {
+            addMessage('system', `<strong>🔄 RECURSIVE LOOP INITIATED</strong><br>Executing: Observation Masking → Genome Mutation → Persistence`);
+
+            setTimeout(() => {
+                sessionData.l3Version = incrementVersion(sessionData.l3Version);
+                sessionData.alignment = Math.min(1.0, sessionData.alignment + 0.02);
+
+                addMessage('system', `✓ Observation Masking: ${Math.floor(sessionData.interactions / 3)} compressed<br>✓ Genome Mutation: L3 updated to v${sessionData.l3Version}<br>✓ Self-Mutation: SKILL.md regenerated<br><br><strong>[SESSION COMPLETE]</strong><br>State persisted. Ready for reincarnation.`);
+
+                // Reset for demo
+                sessionData.interactions = 0;
+                sessionData.observations = [];
+            }, 1000);
+        }
+
+        function incrementVersion(v) {
+            const parts = v.split('.');
+            parts[2] = parseInt(parts[2]) + 1;
+            return parts.join('.');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
