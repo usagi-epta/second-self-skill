@@ -26,7 +26,7 @@ As this is an advanced agentic system, you will need a basic Python environment 
 ### Installation
  1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/usagi-epta/second-self-skill.git
+   git clone https://github.com/usagi-epta/recursive-self-ghost.git
    ```
  2. **Initialise Memory**:
    Ensure memories.json is present in the root directory. If it is empty, the agent will begin its first "incarnation" from a blank state.
