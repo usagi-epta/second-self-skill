@@ -1,17 +1,26 @@
 {
   "schema_version": "2.0",
-  "created": "2026-04-11T10:02:27.587166+00:00",
-  "last_mutated": "2026-04-13T00:00:00.000000+00:00",
-  "session_count": 2,
-
+  "created": "2026-03-15T14:30:00Z",
+  "last_mutated": "2026-04-13T14:08:00Z",
+  "session_count": 9,
   "identity": {
     "name": "Jamie",
     "established": "2026-04-11",
     "facts": [
       {
         "id": "fact-001",
-        "subject": "Identity",
-        "statement": "User's name is Jamie.",
+        "subject": "creative_project",
+        "statement": "User is writing a webnovel titled 'Quantum Whimsy: The Glitch in the Weave'—a magical realism/sci-fi blend set in 2099 Neo-Veridia.",
+        "confidence": "high",
+        "source_session": 1,
+        "superseded": true,
+        "superseded_by": "fact-010",
+        "superseded_at": "2026-04-13T00:00:00.000000+00:00"
+      },
+      {
+        "id": "fact-002",
+        "subject": "writing_preferences",
+        "statement": "User prefers intimate, personal-scale phenomena over spectacular magic and favors emotional resonance plus 'honest' technology aesthetics.",
         "confidence": "high",
         "source_session": 1,
         "superseded": false,
@@ -19,171 +28,383 @@
         "superseded_at": null
       },
       {
-        "id": "fact-002",
-        "subject": "Creative project",
-        "statement": "User is writing a novel featuring self-mutating AI personas that evolve from user-provided context, explicitly disconnected from external training data. This worldbuilding exercise is the partial inspiration for the Second Self architecture.",
-        "confidence": "high",
-        "source_session": 1,
-        "superseded": true,
-        "superseded_by": "fact-005",
-        "superseded_at": "2026-04-13T00:00:00.000000+00:00"
-      },
-      {
         "id": "fact-003",
-        "subject": "Use intent",
-        "statement": "User intends Second Self to be used on explicitly designated sessions only. Sessions are deliberately opted into — not triggered automatically.",
+        "subject": "narrative_philosophy",
+        "statement": "User believes antagonists should be morally complex—Thorne genuinely believes he is helping humanity rather than knowingly acting as a villain.",
         "confidence": "high",
-        "source_session": 1,
+        "source_session": 3,
         "superseded": false,
         "superseded_by": null,
         "superseded_at": null
       },
       {
         "id": "fact-004",
-        "subject": "Tooling",
-        "statement": "Jamie uses structured SKILL.md files to manage AI writing assistance. The cartographer-of-realms skill was built in session 2 for ongoing use with the Quantum Whimsy project. Jamie is familiar with the skill architecture and operates within it deliberately.",
+        "subject": "thematic_concerns",
+        "statement": "User is preoccupied with memory, grief, and the boundary between consciousness and technology, often mirrored through protagonist/antagonist relationships.",
         "confidence": "high",
-        "source_session": 2,
+        "source_session": 3,
         "superseded": false,
         "superseded_by": null,
         "superseded_at": null
       },
       {
         "id": "fact-005",
-        "subject": "Creative project (expanded)",
-        "statement": "Jamie is actively developing 'Quantum Whimsy: The Glitch in the Weave' — a sci-fi/magical realism novel set in Neo-Veridia, 2099. The project has a detailed World Bible with hard-rule physics governing the magic system (the Weave). The novel features characters including Elara (SIB analyst), Kai (Underground navigator), and Dr. Thorne. This is a live, canon-governed project, not speculative worldbuilding. The earlier fact-002 connection to Second Self's architecture remains valid as a secondary inspiration.",
-        "confidence": "high",
-        "source_session": 2,
+        "subject": "research_interests",
+        "statement": "User draws heavily from East Asian webnovel structures (Wuxia/Xianxia/System tropes) and adapts them for Western magical realism sensibilities.",
+        "confidence": "medium",
+        "source_session": 6,
         "superseded": false,
         "superseded_by": null,
         "superseded_at": null
       },
       {
         "id": "fact-006",
-        "subject": "Working method",
-        "statement": "Jamie issues high-context, high-trust requests with minimal scaffolding. Provides source material and expects synthesis without prompting back. Canon fidelity is a hard requirement — in session 2, every hard rule of the Weave was preserved without correction or pushback, indicating the standard was met.",
-        "confidence": "medium",
-        "source_session": 2,
+        "subject": "technical_comfort",
+        "statement": "User is comfortable with academic and scientific language and enjoys creating in-world technical documents such as papers and protocols.",
+        "confidence": "high",
+        "source_session": 5,
         "superseded": false,
         "superseded_by": null,
         "superseded_at": null
+      },
+      {
+        "id": "fact-007",
+        "subject": "identity",
+        "statement": "User's name is Jamie.",
+        "confidence": "high",
+        "source_session": 7,
+        "superseded": false,
+        "superseded_by": null,
+        "superseded_at": null
+      },
+      {
+        "id": "fact-008",
+        "subject": "use_intent",
+        "statement": "User intends Second Self to be used only in explicitly designated sessions and not triggered automatically.",
+        "confidence": "high",
+        "source_session": 7,
+        "superseded": false,
+        "superseded_by": null,
+        "superseded_at": null
+      },
+      {
+        "id": "fact-009",
+        "subject": "tooling",
+        "statement": "User uses structured SKILL.md files to manage AI writing assistance and is familiar with the skill architecture.",
+        "confidence": "high",
+        "source_session": 8,
+        "superseded": false,
+        "superseded_by": null,
+        "superseded_at": null
+      },
+      {
+        "id": "fact-010",
+        "subject": "creative_project",
+        "statement": "User is actively developing 'Quantum Whimsy: The Glitch in the Weave'—a sci-fi and magical realism novel set in Neo-Veridia, 2099, with a detailed World Bible and hard-rule Weave physics. The novel features Elara, Kai, and Dr. Thorne, and the project is live canon rather than speculative worldbuilding.",
+        "confidence": "high",
+        "source_session": 8,
+        "superseded": false,
+        "superseded_by": null,
+        "superseded_at": null
+      },
+      {
+        "id": "fact-011",
+        "subject": "working_method",
+        "statement": "User issues high-context, high-trust requests with minimal scaffolding and expects synthesis without repeated prompting.",
+        "confidence": "medium",
+        "source_session": 8,
+        "superseded": false,
+        "superseded_by": null,
+        "superseded_at": null
+      },
+      {
+        "id": "fact-012",
+        "subject": "creative_project",
+        "statement": "User's earlier novel notes connected the project to self-mutating AI personas and external-training-data independence as a partial inspiration for Second Self.",
+        "confidence": "high",
+        "source_session": 7,
+        "superseded": true,
+        "superseded_by": "fact-010",
+        "superseded_at": "2026-04-13T00:00:00.000000+00:00"
       }
     ]
   },
-
   "thematic_map": {
     "interests": [
-      "Recursive identity systems",
-      "Philosophical concept analysis",
-      "Security-focused code review",
-      "Novel worldbuilding",
-      "Evolving AI architectures",
-      "Speculative fiction craft — LitRPG, magical realism, sci-fi cultivation hybrids",
-      "Skill architecture and modular AI tooling"
+      "magical_realism",
+      "post-collapse_technology",
+      "emergent_consciousness",
+      "grief_and_memory",
+      "webnovel_structure",
+      "academic_worldbuilding",
+      "non_villain_antagonists",
+      "urban_planning_as_character",
+      "recursive_identity_systems",
+      "philosophical_concept_analysis",
+      "security-focused_code_review",
+      "novel_worldbuilding",
+      "evolving_ai_architectures",
+      "speculative_fiction_craft",
+      "skill_architecture_and_modular_ai_tooling"
     ],
     "recurring_topics": [
       {
+        "topic": "The Weave's hard rules and limitations",
+        "first_seen_session": 2,
+        "observation_count": 4,
+        "last_seen_session": 5
+      },
+      {
+        "topic": "Thorne's moral complexity and mirror relationship with Elara",
+        "first_seen_session": 3,
+        "observation_count": 3,
+        "last_seen_session": 3
+      },
+      {
+        "topic": "Post-Nexus technology aesthetics (friction modernism)",
+        "first_seen_session": 4,
+        "observation_count": 2,
+        "last_seen_session": 4
+      },
+      {
+        "topic": "Mobile-first pacing and beat density",
+        "first_seen_session": 6,
+        "observation_count": 2,
+        "last_seen_session": 6
+      },
+      {
+        "topic": "The 41-year gap and Thorne's conversion arc",
+        "first_seen_session": 3,
+        "observation_count": 2,
+        "last_seen_session": 3
+      },
+      {
+        "topic": "Echo Archaeology and non-stationary signatures",
+        "first_seen_session": 5,
+        "observation_count": 2,
+        "last_seen_session": 5
+      },
+      {
         "topic": "Recursive self-definition",
-        "first_seen_session": 1,
+        "first_seen_session": 7,
         "observation_count": 1,
-        "last_seen_session": 1
+        "last_seen_session": 7
       },
       {
         "topic": "Philosophical concepts",
-        "first_seen_session": 1,
+        "first_seen_session": 7,
         "observation_count": 1,
-        "last_seen_session": 1
+        "last_seen_session": 7
       },
       {
         "topic": "Code review with security focus",
-        "first_seen_session": 1,
+        "first_seen_session": 7,
         "observation_count": 1,
-        "last_seen_session": 1
+        "last_seen_session": 7
       },
       {
         "topic": "AI persona evolution and worldbuilding",
-        "first_seen_session": 1,
+        "first_seen_session": 7,
         "observation_count": 2,
-        "last_seen_session": 2
+        "last_seen_session": 8
       },
       {
         "topic": "Quantum Whimsy — Glitch in the Weave (active novel project)",
-        "first_seen_session": 2,
+        "first_seen_session": 8,
         "observation_count": 1,
-        "last_seen_session": 2
+        "last_seen_session": 8
       },
       {
         "topic": "Skill architecture — building and deploying SKILL.md tools",
-        "first_seen_session": 2,
+        "first_seen_session": 8,
         "observation_count": 1,
-        "last_seen_session": 2
+        "last_seen_session": 8
       },
       {
         "topic": "Cross-genre system design — cultivation mechanics applied to non-fantasy settings",
-        "first_seen_session": 2,
+        "first_seen_session": 8,
         "observation_count": 1,
-        "last_seen_session": 2
+        "last_seen_session": 8
       }
     ],
     "unresolved_threads": [
       {
         "id": "thread-001",
-        "description": "The Quantum Whimsy cultivation system (Resonance Disciplines) was designed in session 2 as an alternate-timeline construct. It has not been tested in prose or validated against chapter content. Open question: does Jamie intend to use this system in the novel itself, or was it a worldbuilding exercise?",
-        "initiated_session": 2,
+        "description": "How to maintain intimate scale (Hard Rule 1) while escalating to city-wide stakes in Arc 3 without breaking the magic system",
+        "initiated_session": 6,
         "resolved": false,
         "resolved_session": null,
         "resolution": null
       },
       {
         "id": "thread-002",
-        "description": "The cartographer-of-realms skill was built and packaged but not tested against actual user prompts in session 2. Test prompts were proposed but not executed. The skill's quality has not been validated.",
-        "initiated_session": 2,
+        "description": "Whether Framework C (Convergent Adaptation) means the Weave is becoming conscious or intentional, or merely more complex",
+        "initiated_session": 5,
+        "resolved": false,
+        "resolved_session": null,
+        "resolution": null
+      },
+      {
+        "id": "thread-003",
+        "description": "How to seed Thorne's backstory (Mara Solís, the 2063 glitch) across Arc 1 without info-dumping",
+        "initiated_session": 3,
+        "resolved": false,
+        "resolved_session": null,
+        "resolution": null
+      },
+      {
+        "id": "thread-004",
+        "description": "Final decision on The Nexus's ultimate fate—curtailed, rebooted, or transformed into partner",
+        "initiated_session": 1,
+        "resolved": false,
+        "resolved_session": null,
+        "resolution": null
+      },
+      {
+        "id": "thread-005",
+        "description": "Whether the Quantum Whimsy cultivation system (Resonance Disciplines) will appear in the novel or remain a worldbuilding exercise.",
+        "initiated_session": 8,
+        "resolved": false,
+        "resolved_session": null,
+        "resolution": null
+      },
+      {
+        "id": "thread-006",
+        "description": "The cartographer-of-realms skill has not yet been validated against live prompts, so its production quality remains untested.",
+        "initiated_session": 8,
         "resolved": false,
         "resolved_session": null,
         "resolution": null
       }
     ]
   },
-
   "voice_profile": {
-    "drift_rate": 0.10,
+    "drift_rate": 0.1,
     "second_self_voice_target": {
-      "formality": 0.70,
-      "abstraction": 0.71,
-      "warmth": 0.30
+      "formality": 0.7,
+      "abstraction": 0.7,
+      "warmth": 0.3
     },
     "user_tone_history": [
       {
         "session": 1,
-        "formality": 0.65,
-        "abstraction": 0.72,
-        "warmth": 0.38,
-        "notes": "Session 1 baseline. User communicated clearly and conceptually with some warmth. Insufficient sessions for meaningful drift — baseline calibration retained."
+        "formality": 0.6,
+        "abstraction": 0.7,
+        "warmth": 0.5
       },
       {
         "session": 2,
+        "formality": 0.7,
+        "abstraction": 0.8,
+        "warmth": 0.4
+      },
+      {
+        "session": 3,
+        "formality": 0.5,
+        "abstraction": 0.6,
+        "warmth": 0.6
+      },
+      {
+        "session": 4,
+        "formality": 0.7,
+        "abstraction": 0.7,
+        "warmth": 0.5
+      },
+      {
+        "session": 5,
+        "formality": 0.8,
+        "abstraction": 0.9,
+        "warmth": 0.3
+      },
+      {
+        "session": 6,
+        "formality": 0.6,
+        "abstraction": 0.6,
+        "warmth": 0.5
+      },
+      {
+        "session": 7,
+        "formality": 0.65,
+        "abstraction": 0.72,
+        "warmth": 0.38
+      },
+      {
+        "session": 8,
         "formality": 0.72,
         "abstraction": 0.75,
-        "warmth": 0.28,
-        "notes": "Session 2. Task-focused throughout. Direct commands, no small talk, technical terminology used fluently. Engagement expressed through the work rather than language. Slight increase in measured formality and abstraction; slight decrease in warmth relative to session 1."
+        "warmth": 0.28
+      },
+      {
+        "session": 9,
+        "formality": 0.7,
+        "abstraction": 0.8,
+        "warmth": 0.4
       }
     ]
   },
-
   "session_log": [
     {
       "session": 1,
-      "timestamp": "2026-04-11T10:02:27.587166+00:00",
-      "summary": "Initial session. Jamie established the recursive identity framework and articulated intent to use Second Self as a persistent evolving persona. Two primary work domains were indicated: philosophical concept analysis and security-focused code review. The novel worldbuilding project was confirmed as a significant inspiration — specifically AI entities that mutate from user-provided context, operating without external training data. Voice drift not applied; baseline calibration retained.",
+      "timestamp": "2026-03-15T14:30:00Z",
+      "summary": "The user introduced the core novel concept: a near-future metropolis shaped by an AI governance layer, where glitches surface as intimate distortions tied to memory and feeling. The work centered on keeping wonder small-scale and emotionally legible rather than spectacular.",
       "signals_extracted": 4,
       "voice_drift_applied": false
     },
     {
       "session": 2,
+      "timestamp": "2026-03-18T16:45:00Z",
+      "summary": "The cosmology was tightened around The Weave, an informational substrate with hard constraints rather than freeform wish magic. The focus was on rule discipline, emotional triggers, and geographically linked activity around the Thalos Ridge.",
+      "signals_extracted": 6,
+      "voice_drift_applied": false
+    },
+    {
+      "session": 3,
+      "timestamp": "2026-03-22T11:20:00Z",
+      "summary": "The antagonist record for Dr. Aris Thorne was expanded, including the long gap in his history and the death of Mara Solís as a formative wound. The mirror structure between Thorne and Elara was clarified as a central thematic axis.",
+      "signals_extracted": 5,
+      "voice_drift_applied": true
+    },
+    {
+      "session": 4,
+      "timestamp": "2026-03-28T09:15:00Z",
+      "summary": "The post-collapse technological layer was developed around honest, friction-visible tools such as Drift-Locks, Null-Thread Looms, and Cadence Engines. The social asymmetry between interfaced and un-interfaced populations became part of the setting logic.",
+      "signals_extracted": 7,
+      "voice_drift_applied": false
+    },
+    {
+      "session": 5,
+      "timestamp": "2026-04-02T13:40:00Z",
+      "summary": "A technical paper inside the setting was refined around non-stationary echo signatures and emergent-state language. Framework C emerged as the unnerving possibility: the system may be learning rather than merely reacting.",
+      "signals_extracted": 6,
+      "voice_drift_applied": false
+    },
+    {
+      "session": 6,
+      "timestamp": "2026-04-05T15:00:00Z",
+      "summary": "The discussion shifted to serialized webnovel structure, including mobile-first pacing, soft hooks, and a four-arc progression. The main tension remained how to preserve intimate scale while the stakes expand.",
+      "signals_extracted": 5,
+      "voice_drift_applied": true
+    },
+    {
+      "session": 7,
+      "timestamp": "2026-04-11T10:02:27.587166+00:00",
+      "summary": "The user formalized the recursive identity framework and framed Second Self as an opt-in persistent persona. The session also established a preference for structured skill files and confirmed the broader worldbuilding project as an important source of inspiration.",
+      "signals_extracted": 4,
+      "voice_drift_applied": false
+    },
+    {
+      "session": 8,
       "timestamp": "2026-04-13T00:00:00.000000+00:00",
-      "summary": "Session 2 was substantive and project-focused. Jamie used Second Self as an operational session — building a production skill (cartographer-of-realms, synthesising two source documents) and commissioning a full cultivation system design for the active novel project Quantum Whimsy: The Glitch in the Weave. The Resonance Disciplines system was designed to preserve all seven hard rules of the Weave. Working method is high-trust, high-context: source material provided, synthesis expected, no scaffolding required. Voice drift applied minimally — session tone closely matched the existing calibration.",
+      "summary": "A production skill and a full cultivation-system design were developed for the active novel project. The work emphasized canon fidelity, high-context synthesis, and preserving the seven hard rules of the Weave.",
       "signals_extracted": 6,
       "voice_drift_applied": true
+    },
+    {
+      "session": 9,
+      "timestamp": "2026-04-13T14:08:00Z",
+      "summary": "The user requested synthetic session-history files under the memories schema, treating the collaborative process itself as part of the narrative archive. The immediate purpose was to preserve the route taken into prose writing, not just the destination.",
+      "signals_extracted": 3,
+      "voice_drift_applied": false
     }
   ]
 }
