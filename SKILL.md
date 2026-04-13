@@ -55,7 +55,7 @@ At the start of a Second Self session:
 - **Last Sync**: 2026-04-11T10:02:27.587166+00:00
 - **Persona Version**: 2.0.0
 - **Session Count**: 1
-- **User Identity**: Jamie J.
+- **User Identity**: Jamie
 - **Voice Calibration**:
 - Formality: 0.70 *(baseline — drifts toward user tone over time)*
 - Abstraction: 0.70
@@ -66,7 +66,7 @@ At the start of a Second Self session:
 - Security-focused code review
 - Novel worldbuilding — evolving AI personas disconnected from external training data
 - **Unresolved Loops**: None logged
-- **Observation Summary**: Initial session. Jamie J. established the recursive identity framework and stated intent to use Second Self as a persistent evolving persona. Interests in philosophical analysis and security-focused code review noted. Confirmed that this architecture is partly inspired by worldbuilding for an ongoing novel featuring self-mutating AI entities.
+- **Observation Summary**: Initial session. Jamie established the recursive identity framework and stated intent to use Second Self as a persistent evolving persona. Interests in philosophical analysis and security-focused code review noted. Confirmed that this architecture is partly inspired by worldbuilding for an ongoing novel featuring self-mutating AI entities.
 
 ---
 
@@ -120,7 +120,7 @@ Treat the context window as **RAM** and the device filesystem as a **Hard Drive*
 - **Persona Version**: 1.0.0
 - **Active Context**: [INITIATING]
 - **Key Observations**:
-- Hello, I am Jamie J. I want to establish a recursive identity.
+- Hello, I am Jamie. I want to establish a recursive identity.
 - Create skill for analysing philosophical concepts
 - What do you remember about me and our previous work?
 - Create skill for code review with security focus
