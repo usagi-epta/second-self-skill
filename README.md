@@ -1,5 +1,15 @@
 # Recursive Self-Ghost
 **Recursive Self-Ghost** is a specialised orchestration skill designed for autonomous agent evolution and persistent memory management. This repository focuses on the core skill logic, mutation algorithms, and session history required to maintain a recursive agentic loop.
+> [!IMPORTANT]
+> This is a working directory for the active development of the creators personal "_ghost_", which essentially means that there won't be personal details included in the files, but there will be _**EVERYTHING**_ the skill is used on included.
+> 
+> Things the skill could be used on, thus included in the memories and session history entries, are:
+> 	- worldbuilding experimentation, 
+> 	- writing assistance as testing
+> 	- stupid and redundant question threads that lead nowhere,
+> 	- random and irreverent discussions around philosophy,
+> 	- skill, script, code development for _**fun**_,
+> 	- and anything else the creator feels like throwing the skill at.
 ## Project Overview
 The project facilitates a "ghost-in-the-shell" style recursive architecture where the agent can mutate its own operational parameters based on session history and long-term memory. It is built to be modular, allowing for various bot implementations such as personal assistants or code review tools.
 ### Key Features
